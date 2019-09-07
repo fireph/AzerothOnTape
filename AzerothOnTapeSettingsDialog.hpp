@@ -17,13 +17,21 @@
 #include <QMenu>
 #include <QPushButton>
 #include <QSettings>
-#include <QSpinBox>
+#include <QDoubleSpinBox>
 #include <QString>
 #include <QQueue>
 #include <QMediaPlayer>
 #include <QBuffer>
+#include <QComboBox>
+#include <QSlider>
 
 #include "FileDownloader.hpp"
+
+struct Voice {
+    QString languageCode;
+    QString name;
+    QString ssmlGender;
+};
 
 class AzerothOnTapeSettingsDialog : public QDialog
 {
@@ -47,7 +55,12 @@ public slots:
 private slots:
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
     void toggleWindow();
+    void apiKeyChanged();
+    void voiceChanged(int voiceIndex);
     void readHotkeyChanged();
+    void speedChanged(double speed);
+    void speedChanged(int speed);
+    void updateVoices();
     void playFile();
 
 private:
@@ -56,14 +69,24 @@ private:
     void createTrayIcon();
     QString getSsmlString(QJsonObject json);
 
+    QHash<QString, Voice> voices;
+
     QSettings settings;
+    FileDownloader *voicesDownloader;
     FileDownloader *fileToPlay;
     QMediaPlayer *player;
     QBuffer *mediaStream;
 
     QGroupBox *generalGroupBox;
+    QLabel *apiKeyLabel;
+    QLineEdit *apiKeyEdit;
+    QLabel *voiceLabel;
+    QComboBox *voiceComboBox;
     QLabel *readHotkeyLabel;
     QKeySequenceEdit *readHotkeyEdit;
+    QLabel *speedLabel;
+    QDoubleSpinBox *speedSpinBox;
+    QSlider *speedSlider;
 
     QAction *showHideAction;
     QAction *quitAction;
@@ -72,7 +95,11 @@ private:
     QMenu *trayIconMenu;
 
     const QSize ICON_SIZE = QSize(32, 32);
+    const QString DEFAULT_LANGUAGE_CODE = "en-US";
+    const QString DEFAULT_VOICE_NAME = "en-AU-Wavenet-D";
+    const QString DEFAULT_SSML_GENDER = "MALE";
     const QString DEFAULT_READ_HOTKEY = "Del";
+    const double DEFAULT_SPEED = 1.0;
 };
 
 #endif // QT_NO_SYSTEMTRAYICON
