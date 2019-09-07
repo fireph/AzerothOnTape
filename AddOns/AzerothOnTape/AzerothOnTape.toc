@@ -1,0 +1,11 @@
+﻿## Interface: 11302
+
+## Title: Azeroth On Tape
+## Notes: Together with the "Azeroth On Tape" application this addon allows quest texts to be read out loud using text-to-speech
+
+## Version: 1.0.0
+
+## Author: Frederick Meyer
+
+AzerothOnTape.xml
+AzerothOnTape.lua
