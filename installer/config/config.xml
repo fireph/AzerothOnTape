@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>Azeroth On Tape</Name>
+    <Version>1.0.0</Version>
+    <Title>Azeroth On Tape</Title>
+    <Publisher>Frederick Meyer</Publisher>
+    <!-- Directory name is used in component.xml -->
+    <StartMenuDir>Azeroth On Tape</StartMenuDir>
+    <TargetDir>@ApplicationsDirX64@/AzerothOnTape</TargetDir>
+</Installer>
