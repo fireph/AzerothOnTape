@@ -8,43 +8,42 @@ BINDING_HEADER_AzerothOnTape = "Azeroth On Tape"
 BINDING_NAME_readquesttext = "Read Quest Text"
 BINDING_NAME_readquestobjectives = "Read Quest Objectives"
 
-SLASH_WQTR_INFO1 = "/wowquesttextreader"
-SLASH_WQTR_INFO2 = "/wqtr"
-SLASH_WQTR_INFO3 = "/questtextreader"
+SLASH_AOT_INFO1 = "/azerothontape"
+SLASH_AOT_INFO2 = "/aot"
 
-SlashCmdList["WQTR_INFO"] = function(msg) AzerothOnTape:ShowWowQuestTextReaderInfo() end
+SlashCmdList["AOT_INFO"] = function(msg) AzerothOnTape:ShowWowQuestTextReaderInfo() end
 
 -- Initializing...
---print("Initializing WQTR 2.0");
+--print("Initializing AOT 1.0");
 
-local wqtrGossipDialogOpen = false;
+local aotGossipDialogOpen = false;
 
 -- Dummy frame to get events
-local wqtrEventFrame = CreateFrame("FRAME", "WqtrEventFrame")
-wqtrEventFrame:RegisterEvent("GOSSIP_SHOW")
-wqtrEventFrame:RegisterEvent("GOSSIP_CLOSED")
+local aotEventFrame = CreateFrame("FRAME", "AotEventFrame")
+aotEventFrame:RegisterEvent("GOSSIP_SHOW")
+aotEventFrame:RegisterEvent("GOSSIP_CLOSED")
 
 -- Event handler
-local function wqtrEventHandler(self, event, ...)
+local function aotEventHandler(self, event, ...)
     if (event == "GOSSIP_CLOSED") then
-        wqtrGossipDialogOpen = false
+        aotGossipDialogOpen = false
         --print("closed")
     elseif (event == "GOSSIP_SHOW") then
-        wqtrGossipDialogOpen = true
+        aotGossipDialogOpen = true
         --print("shown")
     end
 end
 
-wqtrEventFrame:SetScript("OnEvent", wqtrEventHandler);
+aotEventFrame:SetScript("OnEvent", aotEventHandler);
 
---print("...Initializing WQTR 2.0 DONE");
+--print("...Initializing AOT 1.0 DONE");
 
 function AzerothOnTape:ShowWowQuestTextReaderInfo()
-	DEFAULT_CHAT_FRAME:AddMessage("Azeroth On Tape Addon 1.0 Installed!")
+    DEFAULT_CHAT_FRAME:AddMessage("Azeroth On Tape Addon 1.0 Installed!")
     DEFAULT_CHAT_FRAME:AddMessage("Make sure the Azeroth On Tape Application is running.")
-	DEFAULT_CHAT_FRAME:AddMessage("Important! Open the WoW Keybindings menu, find the section for Azeroth On Tape.")
-	DEFAULT_CHAT_FRAME:AddMessage("Bind Read Quest Objectives to Shift-F11.")
-	DEFAULT_CHAT_FRAME:AddMessage("Bind Read Quest Text to Shift-F12.")
+    DEFAULT_CHAT_FRAME:AddMessage("Important! Open the WoW Keybindings menu, find the section for Azeroth On Tape.")
+    DEFAULT_CHAT_FRAME:AddMessage("Bind Read Quest Objectives to Shift-F11.")
+    DEFAULT_CHAT_FRAME:AddMessage("Bind Read Quest Text to Shift-F12.")
     DEFAULT_CHAT_FRAME:AddMessage("Usage: Select a quest from your quest log, press one of the application hotkeys (set in the external application, NOT the WoW hotkeys Shift-F11 and Shift F12). Application must be running for text-to-speech to work.")
 end
 
@@ -53,22 +52,22 @@ function AzerothOnTape:GetSelectedQuestInfo()
     local questSelected = GetQuestLogSelection()
     local questText, questObjectives = GetQuestLogQuestText()
     local questTitle, level, questTag, suggestedGroup, isHeader, isCollapsed, isComplete, questID = GetQuestLogTitle(questSelected)
-	
+    
     -- This requires the NPC dialog to still be open
     local npcQuestRewardText = GetRewardText()
 
     -- This requires the NPC dialog to still be open
     local npcQuestTitle = GetTitleText()
     local npcQuestText = GetQuestText()
-	local npcQuestObjectives = GetObjectiveText()
-	local npcProgressText = GetProgressText()
+    local npcQuestObjectives = GetObjectiveText()
+    local npcProgressText = GetProgressText()
 
     -- This requires the NPC dialog to still be open
-	local npcGossipText = ""
+    local npcGossipText = ""
 
     -- Because you can grab this text even when not talking to the NPC we only set it when such a dialog
     -- is open. We rather have it read the regular quest texts when not engaging with a NPC.
-    if (wqtrGossipDialogOpen) then
+    if (aotGossipDialogOpen) then
         npcGossipText = GetGossipText()
     end
 
@@ -84,24 +83,24 @@ function AzerothOnTape:GetSelectedQuestInfo()
         questObjectives = ""
     end
 
-	if (npcGossipText == nil) then
-	    npcGossipText = ""
+    if (npcGossipText == nil) then
+        npcGossipText = ""
     end
 
-	if (npcQuestText == nil) then
-	    npcQuestText = ""
+    if (npcQuestText == nil) then
+        npcQuestText = ""
     end
 
-	if (npcQuestObjectives == nil) then
-	    npcQuestObjectives = ""
+    if (npcQuestObjectives == nil) then
+        npcQuestObjectives = ""
     end
 
-	if (npcProgressText == nil) then
-	    npcProgressText = ""
+    if (npcProgressText == nil) then
+        npcProgressText = ""
     end
 
-	if (npcQuestRewardText == nil) then
-	    npcQuestRewardText = ""
+    if (npcQuestRewardText == nil) then
+        npcQuestRewardText = ""
     end
 
     -- Did we have a quest?
@@ -122,7 +121,7 @@ function AzerothOnTape:GetSelectedQuestInfo()
     end
 
     AzerothOnTapeFrameScrollText:Enable();
-	--end
+    --end
 end
 
 function AzerothOnTape:OnTextChanged(this)

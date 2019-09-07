@@ -2,7 +2,7 @@
 
 #include <QJsonDocument>
 
-FileDownloader::FileDownloader(QUrl imageUrl, QJsonObject json, QObject *parent) :
+FileDownloader::FileDownloader(RequestType type, QUrl url, QJsonObject json, QObject *parent) :
     QObject(parent)
 {
     connect(
@@ -10,9 +10,13 @@ FileDownloader::FileDownloader(QUrl imageUrl, QJsonObject json, QObject *parent)
         this, SLOT (fileDownloaded(QNetworkReply*))
         );
 
-    QNetworkRequest request(imageUrl);
+    QNetworkRequest request(url);
     request.setRawHeader("Content-Type", "application/json");
-    m_WebCtrl.post(request, QJsonDocument(json).toJson());
+    if (type == RequestType::POST) {
+        m_WebCtrl.post(request, QJsonDocument(json).toJson());
+    } else {
+        m_WebCtrl.get(request);
+    }
 }
 
 FileDownloader::~FileDownloader() { }

@@ -8,11 +8,16 @@
 #include <QNetworkReply>
 #include <QJsonObject>
 
+enum RequestType {
+    GET,
+    POST
+};
+
 class FileDownloader : public QObject
 {
     Q_OBJECT
     public:
-        explicit FileDownloader(QUrl imageUrl, QJsonObject json, QObject *parent = 0);
+        explicit FileDownloader(RequestType type, QUrl url, QJsonObject json, QObject *parent = 0);
         virtual ~FileDownloader();
         QByteArray downloadedData() const;
 
