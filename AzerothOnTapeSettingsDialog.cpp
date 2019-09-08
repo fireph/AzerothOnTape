@@ -312,7 +312,11 @@ void AzerothOnTapeSettingsDialog::playFile()
     QJsonDocument document = QJsonDocument::fromJson(fileDownloader->downloadedData());
     QJsonObject rootObj = document.object();
     QByteArray ba;
-    ba.append(rootObj["audioContent"].toString());
+    QString base64String = rootObj["audioContent"].toString();
+    if (base64String.isEmpty()) {
+        return;
+    }
+    ba.append(base64String);
     QByteArray data = QByteArray::fromBase64(ba);
     QUuid uuid = QUuid::createUuid();
     QString tempFileFullPath = QDir::toNativeSeparators(QDir::tempPath() + "/" + qApp->applicationName().replace(" ", "") + "_" + uuid.toString(QUuid::WithoutBraces) + ".mp3");
