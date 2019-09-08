@@ -24,11 +24,15 @@ QMAKE_TARGET_COPYRIGHT = "\251 2019 Frederick Meyer"
 
 #CONFIG += console
 
-msvc: LIBS += -luser32 -lVersion
+CONFIG += openssl-linked
+
+INCLUDEPATH += C:/OpenSSL-Win64/include
+
+msvc: LIBS += -LC:/OpenSSL-Win64/lib -luser32 -lVersion
 
 win32: RC_ICONS += images/quest.ico
 
-QT += widgets network multimedia
+QT += core widgets network multimedia
 requires(qtConfig(combobox))
 
 include(vendor/vendor.pri)
