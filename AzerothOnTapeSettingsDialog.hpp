@@ -70,6 +70,7 @@ private:
     void createTrayIcon();
     bool readyForNewMedia(QMediaPlayer::MediaStatus mediaStatus);
     QString getSsmlString(QJsonObject json);
+    QString escapeText(QString text);
 
     QHash<QString, Voice> voices;
     QQueue<QUrl> filesToPlay;
