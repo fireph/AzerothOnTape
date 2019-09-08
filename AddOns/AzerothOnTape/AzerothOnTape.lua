@@ -106,7 +106,7 @@ function AzerothOnTape:GetSelectedQuestInfo()
     -- Did we have a quest?
     --if (questText ~= nil) then
 
-    local questXml = '{"questTitle":"' .. questTitle .. '","questDescription":"' .. questText .. '","questObjectives":"' .. questObjectives .. '","questId":"' .. questID .. '","npcQuestTitle":"' .. npcQuestTitle .. '","npcQuestRewardText":"' .. npcQuestRewardText .. '","npcQuestText":"' .. npcQuestText .. '","npcQuestObjectives":"' .. npcQuestObjectives .. '","npcGossipText":"' .. npcGossipText .. '","npcProgressText":"' .. npcProgressText .. '"}'
+    local questXml = '{"questTitle":"' .. questTitle:gsub('"','\\"') .. '","questDescription":"' .. questText:gsub('"','\\"') .. '","questObjectives":"' .. questObjectives:gsub('"','\\"') .. '","questId":"' .. questID .. '","npcQuestTitle":"' .. npcQuestTitle:gsub('"','\\"') .. '","npcQuestRewardText":"' .. npcQuestRewardText:gsub('"','\\"') .. '","npcQuestText":"' .. npcQuestText:gsub('"','\\"') .. '","npcQuestObjectives":"' .. npcQuestObjectives:gsub('"','\\"') .. '","npcGossipText":"' .. npcGossipText:gsub('"','\\"') .. '","npcProgressText":"' .. npcProgressText:gsub('"','\\"') .. '"}'
 
     AzerothOnTapeFrame:Show()
     --AzerothOnTapeFrame:EnableKeyboard(false)
