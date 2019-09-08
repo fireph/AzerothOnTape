@@ -1,8 +1,8 @@
 # Azeroth On Tape
 
-| OSX | Windows | Latest  | Downloads |
-|-----|---------|---------|-----------|
-|[![Travis Build Status](https://travis-ci.org/DungFu/OBS-Auto-Record.svg?branch=master)](https://travis-ci.org/DungFu/OBS-Auto-Record)|[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/xxe0gbovybndeeyv/branch/master?svg=true)](https://ci.appveyor.com/project/DungFu/obs-auto-record)|[![Latest GitHub Release](https://img.shields.io/github/release/DungFu/OBS-Auto-Record.svg)](https://github.com/DungFu/OBS-Auto-Record/releases/latest)|[![Total Downloads](https://img.shields.io/github/downloads/DungFu/OBS-Auto-Record/total.svg)](https://github.com/DungFu/OBS-Auto-Record/releases/latest)|
+| Windows | Latest  | Downloads |
+|---------|---------|-----------|
+|[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/lps610cuxephannr/branch/master?svg=true)](https://ci.appveyor.com/project/DungFu/azerothontape)|[![Latest GitHub Release](https://img.shields.io/github/release/DungFu/AzerothOnTape.svg)](https://github.com/DungFu/AzerothOnTape/releases/latest)|[![Total Downloads](https://img.shields.io/github/downloads/DungFu/AzerothOnTape/total.svg)](https://github.com/DungFu/AzerothOnTape/releases/latest)|
 
 Convert quest text in World of Warcraft to speech using Google text to speech API.
 
