@@ -374,8 +374,8 @@ void AzerothOnTapeSettingsDialog::createGeneralGroupBox()
     messageLayout->addWidget(readHotkeyEdit, 3, 1, 1, 4);
 
     messageLayout->addWidget(speedLabel, 4, 0);
-    messageLayout->addWidget(speedSpinBox, 4, 1);
-    messageLayout->addWidget(speedSlider, 4, 2, 2, 4);
+    messageLayout->addWidget(speedSlider, 4, 1, 1, 3);
+    messageLayout->addWidget(speedSpinBox, 4, 4);
 
     generalGroupBox->setLayout(messageLayout);
 }
