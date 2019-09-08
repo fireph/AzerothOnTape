@@ -6,7 +6,7 @@
 
 Convert quest text in World of Warcraft to speech using Google text to speech API.
 
-![Azeroth On Tape Screenshot](https://i.imgur.com/z46IOfr.png)
+![Azeroth On Tape Screenshot](https://i.imgur.com/BWLJQOC.png)
 
 ## How to install
 1. Copy Addon in Addon folder to your Interface/Addons folder in your WoW directory
