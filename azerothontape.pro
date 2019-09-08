@@ -26,9 +26,9 @@ QMAKE_TARGET_COPYRIGHT = "\251 2019 Frederick Meyer"
 
 CONFIG += openssl-linked
 
-INCLUDEPATH += C:/OpenSSL-Win64/include
+INCLUDEPATH += $$(OPENSSL_DIR)/include
 
-msvc: LIBS += -LC:/OpenSSL-Win64/lib -luser32 -lVersion
+msvc: LIBS += -L$$(OPENSSL_DIR)/lib -luser32 -lVersion
 
 win32: RC_ICONS += images/quest.ico
 
