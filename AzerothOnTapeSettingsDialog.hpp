@@ -55,6 +55,7 @@ public slots:
 private slots:
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
     void toggleWindow();
+    void mediaStatusChanged(QMediaPlayer::MediaStatus mediaStatus);
     void apiKeyChanged();
     void voiceChanged(int voiceIndex);
     void readHotkeyChanged();
@@ -67,13 +68,13 @@ private:
     void createGeneralGroupBox();
     void createActions();
     void createTrayIcon();
+    bool readyForNewMedia(QMediaPlayer::MediaStatus mediaStatus);
     QString getSsmlString(QJsonObject json);
 
     QHash<QString, Voice> voices;
+    QQueue<QUrl> filesToPlay;
 
     QSettings settings;
-    FileDownloader *voicesDownloader;
-    FileDownloader *fileToPlay;
     QMediaPlayer *player;
     QBuffer *mediaStream;
 

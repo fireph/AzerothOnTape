@@ -33,6 +33,8 @@ AzerothOnTapeSettingsDialog::AzerothOnTapeSettingsDialog() :
 
     player = new QMediaPlayer;
 
+    connect(player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(mediaStatusChanged(QMediaPlayer::MediaStatus)));
+
     createGeneralGroupBox();
 
     createActions();
@@ -61,7 +63,7 @@ AzerothOnTapeSettingsDialog::AzerothOnTapeSettingsDialog() :
     query.addQueryItem("languageCode", "en-US");
     url.setQuery(query);
     QJsonObject json;
-    voicesDownloader = new FileDownloader(RequestType::GET, url, json, this);
+    FileDownloader *voicesDownloader = new FileDownloader(RequestType::GET, url, json, this);
     connect(voicesDownloader, SIGNAL (downloaded()), this, SLOT (updateVoices()));
 }
 
@@ -180,7 +182,7 @@ void AzerothOnTapeSettingsDialog::readText()
     data.insert("input", input);
     data.insert("voice", voice);
     data.insert("audioConfig", audioConfig);
-    fileToPlay = new FileDownloader(RequestType::POST, url, data, this);
+    FileDownloader *fileToPlay = new FileDownloader(RequestType::POST, url, data, this);
     connect(fileToPlay, SIGNAL (downloaded()), this, SLOT (playFile()));
 
     // Press the "Escape" key
@@ -211,6 +213,22 @@ void AzerothOnTapeSettingsDialog::toggleWindow()
     if (isVisible()) {
         raise();
         activateWindow();
+    }
+}
+
+void AzerothOnTapeSettingsDialog::mediaStatusChanged(QMediaPlayer::MediaStatus mediaStatus)
+{
+    if (mediaStatus == QMediaPlayer::MediaStatus::EndOfMedia) {
+        QUrl url = player->media().canonicalUrl();
+        if (url.isValid()) {
+            QFile file(url.path());
+            file.remove();
+        }
+    }
+    if (readyForNewMedia(mediaStatus) && !filesToPlay.empty()) {
+        QUrl fileToPlay = filesToPlay.dequeue();
+        player->setMedia(fileToPlay);
+        player->play();
     }
 }
 
@@ -303,8 +321,13 @@ void AzerothOnTapeSettingsDialog::playFile()
     file.write(data);
     file.close();
     delete fileDownloader;
-    player->setMedia(QUrl::fromLocalFile(tempFileFullPath));
-    player->play();
+    QUrl url = QUrl::fromLocalFile(tempFileFullPath);
+    if (readyForNewMedia(player->mediaStatus())) {
+        player->setMedia(url);
+        player->play();
+    } else {
+        filesToPlay.enqueue(url);
+    }
 }
 
 void AzerothOnTapeSettingsDialog::createGeneralGroupBox()
@@ -406,10 +429,16 @@ QString AzerothOnTapeSettingsDialog::getSsmlString(QJsonObject json)
     }
     return QString(
         "<speak>" \
-            "<emphasis level=\"moderate\">" + questTitle + ".</emphasis>" \
+            "<emphasis level=\"strong\">" + questTitle + ".</emphasis>" \
             "<p>" +  questText.replace("\n\n", "</p><p>") + "</p>" \
-            "<emphasis level=\"moderate\">Objectives.</emphasis><p>" + questObjectives + "</p>" \
+            "<emphasis level=\"moderate\">Quest Objectives.</emphasis><p>" + questObjectives + "</p>" \
         "</speak>");
+}
+
+bool AzerothOnTapeSettingsDialog::readyForNewMedia(QMediaPlayer::MediaStatus mediaStatus) {
+    return mediaStatus == QMediaPlayer::MediaStatus::EndOfMedia
+           || mediaStatus == QMediaPlayer::MediaStatus::NoMedia
+           || mediaStatus == QMediaPlayer::MediaStatus::InvalidMedia;
 }
 
 #endif
