@@ -405,7 +405,7 @@ QString AzerothOnTapeSettingsDialog::getSsmlString(QJsonObject json)
     QString gossipText = json["npcGossipText"].toString();
 
     if (!gossipText.isEmpty()) {
-        return QString("<speak><p>" + gossipText.replace("\n\n", "</p><p>") + "</p></speak>");
+        return QString("<speak><p>" + escapeText(gossipText) + "</p></speak>");
     }
 
     QString questTitle = json["npcQuestTitle"].toString();
@@ -415,7 +415,7 @@ QString AzerothOnTapeSettingsDialog::getSsmlString(QJsonObject json)
         return QString(
             "<speak>" \
                 "<emphasis level=\"moderate\">" + questTitle + ".</emphasis>" \
-                "<p>" + npcProgressText.replace("\n\n", "</p><p>") + "</p>" \
+                "<p>" + escapeText(npcProgressText) + "</p>" \
             "</speak>");
     }
 
@@ -434,7 +434,7 @@ QString AzerothOnTapeSettingsDialog::getSsmlString(QJsonObject json)
     return QString(
         "<speak>" \
             "<emphasis level=\"strong\">" + questTitle + ".</emphasis>" \
-            "<p>" +  questText.replace("\n\n", "</p><p>") + "</p>" \
+            "<p>" +  escapeText(questText) + "</p>" \
             "<emphasis level=\"moderate\">Quest Objectives.</emphasis><p>" + questObjectives + "</p>" \
         "</speak>");
 }
@@ -443,6 +443,11 @@ bool AzerothOnTapeSettingsDialog::readyForNewMedia(QMediaPlayer::MediaStatus med
     return mediaStatus == QMediaPlayer::MediaStatus::EndOfMedia
            || mediaStatus == QMediaPlayer::MediaStatus::NoMedia
            || mediaStatus == QMediaPlayer::MediaStatus::InvalidMedia;
+}
+
+QString AzerothOnTapeSettingsDialog::escapeText(QString text) {
+    return text.replace("\n\n", "</p><p>")
+               .replace("--", "<break strength=\"medium\"");
 }
 
 #endif
