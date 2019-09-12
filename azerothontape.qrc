@@ -1,5 +1,6 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource prefix="/">
-   <file>images/quest.ico</file>
-</qresource>
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>images/quest.ico</file>
+    </qresource>
 </RCC>

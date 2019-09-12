@@ -1,4 +1,3 @@
-
 AzerothOnTape = {}
 AzerothOnTape.lines = {}
 AzerothOnTape.str = nil
@@ -52,7 +51,7 @@ function AzerothOnTape:GetSelectedQuestInfo()
     local questSelected = GetQuestLogSelection()
     local questText, questObjectives = GetQuestLogQuestText()
     local questTitle, level, questTag, suggestedGroup, isHeader, isCollapsed, isComplete, questID = GetQuestLogTitle(questSelected)
-    
+
     -- This requires the NPC dialog to still be open
     local npcQuestRewardText = GetRewardText()
 
@@ -106,7 +105,7 @@ function AzerothOnTape:GetSelectedQuestInfo()
     -- Did we have a quest?
     --if (questText ~= nil) then
 
-    local questXml = '{"questTitle":"' .. questTitle:gsub('"','\\"') .. '","questDescription":"' .. questText:gsub('"','\\"') .. '","questObjectives":"' .. questObjectives:gsub('"','\\"') .. '","questId":"' .. questID .. '","npcQuestTitle":"' .. npcQuestTitle:gsub('"','\\"') .. '","npcQuestRewardText":"' .. npcQuestRewardText:gsub('"','\\"') .. '","npcQuestText":"' .. npcQuestText:gsub('"','\\"') .. '","npcQuestObjectives":"' .. npcQuestObjectives:gsub('"','\\"') .. '","npcGossipText":"' .. npcGossipText:gsub('"','\\"') .. '","npcProgressText":"' .. npcProgressText:gsub('"','\\"') .. '"}'
+    local questXml = '{"questTitle":"' .. questTitle:gsub('"', '\\"') .. '","questDescription":"' .. questText:gsub('"', '\\"') .. '","questObjectives":"' .. questObjectives:gsub('"', '\\"') .. '","questId":"' .. questID .. '","npcQuestTitle":"' .. npcQuestTitle:gsub('"', '\\"') .. '","npcQuestRewardText":"' .. npcQuestRewardText:gsub('"', '\\"') .. '","npcQuestText":"' .. npcQuestText:gsub('"', '\\"') .. '","npcQuestObjectives":"' .. npcQuestObjectives:gsub('"', '\\"') .. '","npcGossipText":"' .. npcGossipText:gsub('"', '\\"') .. '","npcProgressText":"' .. npcProgressText:gsub('"', '\\"') .. '"}'
 
     AzerothOnTapeFrame:Show()
     --AzerothOnTapeFrame:EnableKeyboard(false)
@@ -114,7 +113,7 @@ function AzerothOnTape:GetSelectedQuestInfo()
     AzerothOnTapeFrameScrollText:Disable();
     AzerothOnTapeFrameScrollText:IsKeyboardEnabled(false)
 
-    if (AzerothOnTapeFrameScrollText:GetText()  ~= questXml) then
+    if (AzerothOnTapeFrameScrollText:GetText() ~= questXml) then
         AzerothOnTapeFrameScrollText:SetText(questXml);
 
         AzerothOnTapeFrameScrollText:HighlightText()

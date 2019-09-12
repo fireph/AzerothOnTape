@@ -20,7 +20,7 @@ build_script:
   - rmdir /s /q installer\packages\com.fmeyer.azerothontape\data
   - move release installer\packages\com.fmeyer.azerothontape\data
   - binarycreator --offline-only -c installer\config\config.xml -p installer\packages AzerothOnTape_win64_setup.exe
-  
+
 artifacts:
   - path: AzerothOnTape_win64.zip
   - path: AzerothOnTape_win64_setup.exe

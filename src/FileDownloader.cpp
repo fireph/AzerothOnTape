@@ -3,12 +3,11 @@
 #include <QJsonDocument>
 
 FileDownloader::FileDownloader(RequestType type, QUrl url, QJsonObject json, QObject *parent) :
-    QObject(parent)
-{
+        QObject(parent) {
     connect(
-        &m_WebCtrl, SIGNAL (finished(QNetworkReply*)),
-        this, SLOT (fileDownloaded(QNetworkReply*))
-        );
+            &m_WebCtrl, SIGNAL (finished(QNetworkReply * )),
+            this, SLOT (fileDownloaded(QNetworkReply * ))
+    );
 
     QNetworkRequest request(url);
     request.setRawHeader("Content-Type", "application/json");
@@ -19,9 +18,9 @@ FileDownloader::FileDownloader(RequestType type, QUrl url, QJsonObject json, QOb
     }
 }
 
-FileDownloader::~FileDownloader() { }
+FileDownloader::~FileDownloader() {}
 
-void FileDownloader::fileDownloaded(QNetworkReply* pReply) {
+void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
     m_DownloadedData = pReply->readAll();
     //emit a signal
     pReply->deleteLater();

@@ -33,43 +33,61 @@ struct Voice {
     QString ssmlGender;
 };
 
-class AzerothOnTapeSettingsDialog : public QDialog
-{
-    Q_OBJECT
+class AzerothOnTapeSettingsDialog : public QDialog {
+Q_OBJECT
+
 
 public:
     AzerothOnTapeSettingsDialog();
 
     void setVisible(bool visible) override;
+
     QKeySequence getReadHotkey();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 signals:
+
     void onReadHotkeyUpdated(QKeySequence readHotkey);
 
 public slots:
+
     void readText();
 
 private slots:
+
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
+
     void toggleWindow();
+
     void mediaStatusChanged(QMediaPlayer::MediaStatus mediaStatus);
+
     void apiKeyChanged();
+
     void voiceChanged(int voiceIndex);
+
     void readHotkeyChanged();
+
     void speedChanged(double speed);
+
     void speedChanged(int speed);
+
     void updateVoices();
+
     void playFile();
 
 private:
     void createGeneralGroupBox();
+
     void createActions();
+
     void createTrayIcon();
+
     bool readyForNewMedia(QMediaPlayer::MediaStatus mediaStatus);
+
     QString getSsmlString(QJsonObject json);
+
     QString escapeText(QString text);
 
     QHash<QString, Voice> voices;
@@ -95,6 +113,8 @@ private:
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
+
+    bool currentlyReadingText;
 
     const QSize ICON_SIZE = QSize(32, 32);
     const QString DEFAULT_LANGUAGE_CODE = "en-US";

@@ -14,7 +14,6 @@
 #include <QVBoxLayout>
 #include <QApplication>
 #include <QClipboard>
-#include <QtCore/QDebug>
 #include <QTime>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -22,18 +21,21 @@
 #include <QMediaPlayer>
 #include <QUuid>
 #include <QUrlQuery>
+#include <QJsonValue>
+#include <QtDebug>
 
-#include "Windows.h"
-#include "WinUser.h"
+#include "Input_Lite.h"
+#include "utils/Utils.hpp"
+
 
 AzerothOnTapeSettingsDialog::AzerothOnTapeSettingsDialog() :
-    settings("DungFu", "Azeroth On Tape")
-{
+        settings("DungFu", "Azeroth On Tape") {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     player = new QMediaPlayer;
 
-    connect(player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(mediaStatusChanged(QMediaPlayer::MediaStatus)));
+    connect(player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this,
+            SLOT(mediaStatusChanged(QMediaPlayer::MediaStatus)));
 
     createGeneralGroupBox();
 
@@ -65,150 +67,134 @@ AzerothOnTapeSettingsDialog::AzerothOnTapeSettingsDialog() :
     QJsonObject json;
     FileDownloader *voicesDownloader = new FileDownloader(RequestType::GET, url, json, this);
     connect(voicesDownloader, SIGNAL (downloaded()), this, SLOT (updateVoices()));
+
+    currentlyReadingText = false;
+
 }
 
-void AzerothOnTapeSettingsDialog::setVisible(bool visible)
-{
+void AzerothOnTapeSettingsDialog::setVisible(bool visible) {
     showHideAction->setText(visible ? tr("&Hide") : tr("&Show"));
     QDialog::setVisible(visible);
 }
 
-QKeySequence AzerothOnTapeSettingsDialog::getReadHotkey()
-{
+QKeySequence AzerothOnTapeSettingsDialog::getReadHotkey() {
     return QKeySequence(settings.value("read_hotkey", DEFAULT_READ_HOTKEY).toString());
 }
 
-void AzerothOnTapeSettingsDialog::closeEvent(QCloseEvent *event)
-{
+void AzerothOnTapeSettingsDialog::closeEvent(QCloseEvent *event) {
     if (trayIcon->isVisible()) {
         hide();
         event->ignore();
     }
 }
 
-void AzerothOnTapeSettingsDialog::readText()
-{
-    HWND foreground = GetForegroundWindow();
-    if (!foreground) {
+
+void AzerothOnTapeSettingsDialog::readText() {
+
+    bool isForeground = wow_is_foreground_window();
+    if (!isForeground) {
+        qDebug() << "WoW is NOT in foreground";
         return;
     }
-    char window_title[256];
-    GetWindowText(foreground, (LPWSTR) window_title, 256);
+    // Because we do not block while sleeping, another readText could be triggered
+    if (!this->currentlyReadingText) {
+        this->currentlyReadingText = true;
+        qDebug() << "WoW IS in foreground";
 
-    QString title = QString::fromWCharArray((const wchar_t *)window_title);
+        QClipboard *clipboard = QApplication::clipboard();
+        QString oldClipboardValue = clipboard->text();
 
-    if (title != QString("World of Warcraft")) {
+        qDebug() << "Send keyboard event: DOWN LeftShift";
+        SL::Input_Lite::SendInput(SL::Input_Lite::KeyEvent{true, SL::Input_Lite::KeyCodes::KEY_LeftShift});
+
+        qDebug() << "Send keyboard event: DOWN F11";
+        SL::Input_Lite::SendInput(SL::Input_Lite::KeyEvent{true, SL::Input_Lite::KeyCodes::KEY_F11});
+
+        qDebug() << "Sensd keyboard event: UP F11";
+        SL::Input_Lite::SendInput(SL::Input_Lite::KeyEvent{false, SL::Input_Lite::KeyCodes::KEY_F11});
+
+        qDebug() << "Send keyboard event: UP LeftShift";
+        SL::Input_Lite::SendInput(SL::Input_Lite::KeyEvent{false, SL::Input_Lite::KeyCodes::KEY_LeftShift});
+
+        QTime dieTime = QTime::currentTime().addMSecs(100);
+        while (QTime::currentTime() < dieTime)
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+
+
+        qDebug() << "Send keyboard event: DOWN LeftControl";
+        SL::Input_Lite::SendInput(SL::Input_Lite::KeyEvent{true, SL::Input_Lite::KeyCodes::KEY_LeftControl});
+
+        qDebug() << "Send keyboard event: DOWN C";
+        SL::Input_Lite::SendInput(SL::Input_Lite::KeyEvent{true, SL::Input_Lite::KeyCodes::KEY_C});
+
+        qDebug() << "Send keyboard event: UP C";
+        SL::Input_Lite::SendInput(SL::Input_Lite::KeyEvent{false, SL::Input_Lite::KeyCodes::KEY_C});
+
+        qDebug() << "Send keyboard event: UP LeftControl";
+        SL::Input_Lite::SendInput(SL::Input_Lite::KeyEvent{false, SL::Input_Lite::KeyCodes::KEY_LeftControl});
+
+        QTime dieTime2 = QTime::currentTime().addMSecs(100);
+        while (QTime::currentTime() < dieTime2)
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+
+        QString jsonString = clipboard->text();
+        qDebug() << "Read Json: " << jsonString;
+
+        if (jsonString != oldClipboardValue) {
+            qDebug() << "Reading Quest text aloud...";
+
+
+            QJsonDocument jsonResponse = QJsonDocument::fromJson(jsonString.toUtf8());
+            QJsonObject jsonObject = jsonResponse.object();
+
+            clipboard->setText(oldClipboardValue);
+
+            QUrl url("https://texttospeech.googleapis.com/v1/text:synthesize");
+            QUrlQuery query;
+            query.addQueryItem("key", settings.value("apiKey", "").toString());
+            url.setQuery(query);
+            QJsonObject input;
+            input.insert("ssml", getSsmlString(jsonObject));
+            QJsonObject voice;
+            voice.insert("languageCode", settings.value("languageCode", DEFAULT_LANGUAGE_CODE).toString());
+            voice.insert("name", settings.value("voiceName", DEFAULT_VOICE_NAME).toString());
+            voice.insert("ssmlGender", settings.value("ssmlGender", DEFAULT_SSML_GENDER).toString());
+            QJsonObject audioConfig;
+            audioConfig.insert("audioEncoding", "MP3");
+            audioConfig.insert("speakingRate", settings.value("speed", DEFAULT_SPEED).toDouble());
+            QJsonObject data;
+            data.insert("input", input);
+            data.insert("voice", voice);
+            data.insert("audioConfig", audioConfig);
+            FileDownloader *fileToPlay = new FileDownloader(RequestType::POST, url, data, this);
+            connect(fileToPlay, SIGNAL (downloaded()), this, SLOT (playFile()));
+        } else {
+            qDebug() << "Already played this!";
+
+        }
+        qDebug() << "Send keyboard event: DOWN Escape";
+        SL::Input_Lite::SendInput(SL::Input_Lite::KeyEvent{true, SL::Input_Lite::KeyCodes::KEY_Escape});
+
+        qDebug() << "Send keyboard event: UP Escape";
+        SL::Input_Lite::SendInput(SL::Input_Lite::KeyEvent{false, SL::Input_Lite::KeyCodes::KEY_Escape});
+
+        this->currentlyReadingText = false;
+    } else {
+        qDebug() << "Currently reading text, ignore.";
         return;
     }
-
-    QClipboard *clipboard = QApplication::clipboard();
-    QString oldClipboardValue = clipboard->text();
-
-    INPUT ip;
-    ip.type = INPUT_KEYBOARD;
-    ip.ki.wScan = 0;
-    ip.ki.time = 0;
-    ip.ki.dwExtraInfo = 0;
-
-    // Press the "Shift" key
-    ip.ki.wVk = VK_SHIFT;
-    ip.ki.dwFlags = 0; // 0 for key press
-    SendInput(1, &ip, sizeof(INPUT));
-
-    // Press the "F11" key
-    ip.ki.wVk = VK_F11;
-    ip.ki.dwFlags = 0; // 0 for key press
-    SendInput(1, &ip, sizeof(INPUT));
-
-    // Release the "F11" key
-    ip.ki.wVk = VK_F11;
-    ip.ki.dwFlags = KEYEVENTF_KEYUP;
-    SendInput(1, &ip, sizeof(INPUT));
-
-    // Release the "Shift" key
-    ip.ki.wVk = VK_SHIFT;
-    ip.ki.dwFlags = KEYEVENTF_KEYUP;
-    SendInput(1, &ip, sizeof(INPUT));
-
-    QTime dieTime = QTime::currentTime().addMSecs(100);
-    while (QTime::currentTime() < dieTime)
-        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-
-    // Press the "Ctrl" key
-    ip.ki.wVk = VK_CONTROL;
-    ip.ki.dwFlags = 0; // 0 for key press
-    SendInput(1, &ip, sizeof(INPUT));
-
-    // Press the "C" key
-    ip.ki.wVk = 'C';
-    ip.ki.dwFlags = 0; // 0 for key press
-    SendInput(1, &ip, sizeof(INPUT));
-
-    // Release the "C" key
-    ip.ki.wVk = 'C';
-    ip.ki.dwFlags = KEYEVENTF_KEYUP;
-    SendInput(1, &ip, sizeof(INPUT));
-
-    // Release the "Ctrl" key
-    ip.ki.wVk = VK_CONTROL;
-    ip.ki.dwFlags = KEYEVENTF_KEYUP;
-    SendInput(1, &ip, sizeof(INPUT));
-
-    QTime dieTime2 = QTime::currentTime().addMSecs(100);
-    while (QTime::currentTime() < dieTime2)
-        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-
-    QString jsonString = clipboard->text();
-
-    QJsonDocument jsonResponse = QJsonDocument::fromJson(jsonString.toUtf8());
-    QJsonObject jsonObject = jsonResponse.object();
-
-    clipboard->setText(oldClipboardValue);
-
-    QUrl url("https://texttospeech.googleapis.com/v1/text:synthesize");
-    QUrlQuery query;
-    query.addQueryItem("key", settings.value("apiKey", "").toString());
-    url.setQuery(query);
-    QJsonObject input;
-    input.insert("ssml", getSsmlString(jsonObject));
-    QJsonObject voice;
-    voice.insert("languageCode", settings.value("languageCode", DEFAULT_LANGUAGE_CODE).toString());
-    voice.insert("name", settings.value("voiceName", DEFAULT_VOICE_NAME).toString());
-    voice.insert("ssmlGender", settings.value("ssmlGender", DEFAULT_SSML_GENDER).toString());
-    QJsonObject audioConfig;
-    audioConfig.insert("audioEncoding", "MP3");
-    audioConfig.insert("speakingRate", settings.value("speed", DEFAULT_SPEED).toDouble());
-    QJsonObject data;
-    data.insert("input", input);
-    data.insert("voice", voice);
-    data.insert("audioConfig", audioConfig);
-    FileDownloader *fileToPlay = new FileDownloader(RequestType::POST, url, data, this);
-    connect(fileToPlay, SIGNAL (downloaded()), this, SLOT (playFile()));
-
-    // Press the "Escape" key
-    ip.ki.wVk = VK_ESCAPE;
-    ip.ki.dwFlags = 0; // 0 for key press
-    SendInput(1, &ip, sizeof(INPUT));
-
-    // Release the "Escape" key
-    ip.ki.wVk = VK_ESCAPE;
-    ip.ki.dwFlags = KEYEVENTF_KEYUP;
-    SendInput(1, &ip, sizeof(INPUT));
 }
 
-void AzerothOnTapeSettingsDialog::iconActivated(QSystemTrayIcon::ActivationReason reason)
-{
+void AzerothOnTapeSettingsDialog::iconActivated(QSystemTrayIcon::ActivationReason reason) {
     switch (reason) {
-    case QSystemTrayIcon::DoubleClick:
-        toggleWindow();
-        break;
-    default:
-        ;
+        case QSystemTrayIcon::DoubleClick:
+            toggleWindow();
+            break;
+        default:;
     }
 }
 
-void AzerothOnTapeSettingsDialog::toggleWindow()
-{
+void AzerothOnTapeSettingsDialog::toggleWindow() {
     setVisible(!isVisible());
     if (isVisible()) {
         raise();
@@ -216,8 +202,7 @@ void AzerothOnTapeSettingsDialog::toggleWindow()
     }
 }
 
-void AzerothOnTapeSettingsDialog::mediaStatusChanged(QMediaPlayer::MediaStatus mediaStatus)
-{
+void AzerothOnTapeSettingsDialog::mediaStatusChanged(QMediaPlayer::MediaStatus mediaStatus) {
     if (mediaStatus == QMediaPlayer::MediaStatus::EndOfMedia) {
         QUrl url = player->media().canonicalUrl();
         if (url.isValid()) {
@@ -232,13 +217,11 @@ void AzerothOnTapeSettingsDialog::mediaStatusChanged(QMediaPlayer::MediaStatus m
     }
 }
 
-void AzerothOnTapeSettingsDialog::apiKeyChanged()
-{
+void AzerothOnTapeSettingsDialog::apiKeyChanged() {
     settings.setValue("apiKey", apiKeyEdit->text());
 }
 
-void AzerothOnTapeSettingsDialog::voiceChanged(int voiceIndex)
-{
+void AzerothOnTapeSettingsDialog::voiceChanged(int voiceIndex) {
     QString voiceName = voiceComboBox->currentText();
     if (voices.contains(voiceName)) {
         settings.setValue("voiceName", voiceName);
@@ -248,8 +231,7 @@ void AzerothOnTapeSettingsDialog::voiceChanged(int voiceIndex)
     }
 }
 
-void AzerothOnTapeSettingsDialog::readHotkeyChanged()
-{
+void AzerothOnTapeSettingsDialog::readHotkeyChanged() {
     int value = readHotkeyEdit->keySequence()[0];
     QKeySequence shortcut(value);
     readHotkeyEdit->setKeySequence(shortcut);
@@ -258,54 +240,54 @@ void AzerothOnTapeSettingsDialog::readHotkeyChanged()
     readHotkeyEdit->clearFocus();
 }
 
-void AzerothOnTapeSettingsDialog::speedChanged(double speed)
-{
+void AzerothOnTapeSettingsDialog::speedChanged(double speed) {
     settings.setValue("speed", speed);
-    speedSlider->setValue(round(speed * 10.0));
+    speedSlider->setValue(qRound(speed * 10.0));
 }
 
-void AzerothOnTapeSettingsDialog::speedChanged(int speed)
-{
+void AzerothOnTapeSettingsDialog::speedChanged(int speed) {
     double realSpeed = speed / 10.0;
     settings.setValue("speed", realSpeed);
     speedSpinBox->setValue(realSpeed);
 }
 
-void AzerothOnTapeSettingsDialog::updateVoices()
-{
-    FileDownloader* voicesDownloader = qobject_cast<FileDownloader*>(sender());
+void AzerothOnTapeSettingsDialog::updateVoices() {
+    FileDownloader *voicesDownloader = qobject_cast<FileDownloader *>(sender());
     if (voicesDownloader == nullptr) {
         return;
     }
     QJsonDocument document = QJsonDocument::fromJson(voicesDownloader->downloadedData());
     QJsonObject rootObj = document.object();
-    QJsonArray voicesJson = rootObj["voices"].toArray();
-    QString currentVoiceName = settings.value("voiceName", DEFAULT_VOICE_NAME).toString();
-    voices.clear();
-    voiceComboBox->clear();
-    foreach (const QJsonValue & value, voicesJson) {
-        QJsonObject obj = value.toObject();
-        QString languageCode = obj["languageCodes"].toArray().first().toString();
-        QString voiceName = obj["name"].toString();
-        QString ssmlGender = obj["ssmlGender"].toString();
-        Voice voice = {
-            languageCode,
-            voiceName,
-            ssmlGender
-        };
-        if (voiceName.contains("Wavenet")) {
-            voices.insert(voiceName, voice);
-            voiceComboBox->addItem(voiceName);
-            if (voiceName == currentVoiceName) {
-                voiceComboBox->setCurrentText(voiceName);
+    if (rootObj["error"].isUndefined() || rootObj["error"].isNull()) {
+        QJsonArray voicesJson = rootObj["voices"].toArray();
+        QString currentVoiceName = settings.value("voiceName", DEFAULT_VOICE_NAME).toString();
+        voices.clear();
+        voiceComboBox->clear();
+                foreach (const QJsonValue &value, voicesJson) {
+                QJsonObject obj = value.toObject();
+                QString languageCode = obj["languageCodes"].toArray().first().toString();
+                QString voiceName = obj["name"].toString();
+                QString ssmlGender = obj["ssmlGender"].toString();
+                Voice voice = {
+                        languageCode,
+                        voiceName,
+                        ssmlGender
+                };
+                if (voiceName.contains("Wavenet")) {
+                    voices.insert(voiceName, voice);
+                    voiceComboBox->addItem(voiceName);
+                    if (voiceName == currentVoiceName) {
+                        voiceComboBox->setCurrentText(voiceName);
+                    }
+                }
             }
-        }
+    } else {
+        throw std::runtime_error("API Call Error"); //TODO create gui error
     }
 }
 
-void AzerothOnTapeSettingsDialog::playFile()
-{
-    FileDownloader* fileDownloader = qobject_cast<FileDownloader*>(sender());
+void AzerothOnTapeSettingsDialog::playFile() {
+    FileDownloader *fileDownloader = qobject_cast<FileDownloader *>(sender());
     if (fileDownloader == nullptr) {
         return;
     }
@@ -319,7 +301,9 @@ void AzerothOnTapeSettingsDialog::playFile()
     ba.append(base64String);
     QByteArray data = QByteArray::fromBase64(ba);
     QUuid uuid = QUuid::createUuid();
-    QString tempFileFullPath = QDir::toNativeSeparators(QDir::tempPath() + "/" + qApp->applicationName().replace(" ", "") + "_" + uuid.toString(QUuid::WithoutBraces) + ".mp3");
+    QString tempFileFullPath = QDir::toNativeSeparators(
+            QDir::tempPath() + "/" + qApp->applicationName().replace(" ", "") + "_" +
+            uuid.toString(QUuid::WithoutBraces) + ".mp3");
     QFile file(tempFileFullPath);
     file.open(QIODevice::WriteOnly);
     file.write(data);
@@ -334,8 +318,7 @@ void AzerothOnTapeSettingsDialog::playFile()
     }
 }
 
-void AzerothOnTapeSettingsDialog::createGeneralGroupBox()
-{
+void AzerothOnTapeSettingsDialog::createGeneralGroupBox() {
     generalGroupBox = new QGroupBox(tr("General Settings"));
 
     apiKeyLabel = new QLabel(tr("API Key:"));
@@ -380,8 +363,7 @@ void AzerothOnTapeSettingsDialog::createGeneralGroupBox()
     generalGroupBox->setLayout(messageLayout);
 }
 
-void AzerothOnTapeSettingsDialog::createActions()
-{
+void AzerothOnTapeSettingsDialog::createActions() {
     showHideAction = new QAction(tr("&Show"), this);
     connect(showHideAction, &QAction::triggered, this, &AzerothOnTapeSettingsDialog::toggleWindow);
 
@@ -389,8 +371,7 @@ void AzerothOnTapeSettingsDialog::createActions()
     connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
 }
 
-void AzerothOnTapeSettingsDialog::createTrayIcon()
-{
+void AzerothOnTapeSettingsDialog::createTrayIcon() {
     trayIconMenu = new QMenu(this);
     trayIconMenu->addAction(showHideAction);
     trayIconMenu->addSeparator();
@@ -400,8 +381,7 @@ void AzerothOnTapeSettingsDialog::createTrayIcon()
     trayIcon->setContextMenu(trayIconMenu);
 }
 
-QString AzerothOnTapeSettingsDialog::getSsmlString(QJsonObject json)
-{
+QString AzerothOnTapeSettingsDialog::getSsmlString(QJsonObject json) {
     QString gossipText = json["npcGossipText"].toString();
 
     if (!gossipText.isEmpty()) {
@@ -413,7 +393,7 @@ QString AzerothOnTapeSettingsDialog::getSsmlString(QJsonObject json)
 
     if (!questTitle.isEmpty() && !npcProgressText.isEmpty()) {
         return QString(
-            "<speak>" \
+                "<speak>" \
                 "<emphasis level=\"moderate\">" + questTitle + ".</emphasis>" \
                 "<p>" + escapeText(npcProgressText) + "</p>" \
             "</speak>");
@@ -432,9 +412,9 @@ QString AzerothOnTapeSettingsDialog::getSsmlString(QJsonObject json)
         return QString();
     }
     return QString(
-        "<speak>" \
+            "<speak>" \
             "<emphasis level=\"strong\">" + questTitle + ".</emphasis>" \
-            "<p>" +  escapeText(questText) + "</p>" \
+            "<p>" + escapeText(questText) + "</p>" \
             "<emphasis level=\"moderate\">Quest Objectives.</emphasis><p>" + questObjectives + "</p>" \
         "</speak>");
 }
@@ -447,7 +427,7 @@ bool AzerothOnTapeSettingsDialog::readyForNewMedia(QMediaPlayer::MediaStatus med
 
 QString AzerothOnTapeSettingsDialog::escapeText(QString text) {
     return text.replace("\n\n", "</p><p>")
-               .replace("--", "<break strength=\"medium\"");
+            .replace("--", "<break strength=\"medium\"");
 }
 
 #endif
