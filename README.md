@@ -10,7 +10,7 @@ Convert quest text in World of Warcraft to speech using Google text to speech AP
 
 ## How to install
 1. Copy Addon in Addon folder to your Interface/Addons folder in your WoW directory
-2. Download the latest [release](https://github.com/DungFu/AzerothOnTape/releases) of Azeroth On Tape
+2. Download the latest [release](https://github.com/fireph/AzerothOnTape/releases) of Azeroth On Tape
 3. Run Azeroth On Tape
 4. Set keyboard shortcut to use to trigger text to speech and your Google text to speech API key
 5. Run WoW and make sure Azeroth On Tape addon is enabled
