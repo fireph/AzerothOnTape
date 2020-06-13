@@ -2,7 +2,7 @@
 
 | Windows | Latest  | Downloads |
 |---------|---------|-----------|
-|[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/un6nsc76uw7lm1vn/branch/master?svg=true)](https://ci.appveyor.com/project/DungFu/azerothontape)|[![Latest GitHub Release](https://img.shields.io/github/release/DungFu/AzerothOnTape.svg)](https://github.com/DungFu/AzerothOnTape/releases/latest)|[![Total Downloads](https://img.shields.io/github/downloads/DungFu/AzerothOnTape/total.svg)](https://github.com/DungFu/AzerothOnTape/releases/latest)|
+|[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/40idh8oiq9tuwjlr?svg=true)](https://ci.appveyor.com/project/fireph/azerothontape)|[![Latest GitHub Release](https://img.shields.io/github/release/fireph/AzerothOnTape.svg)](https://github.com/fireph/AzerothOnTape/releases/latest)|[![Total Downloads](https://img.shields.io/github/downloads/fireph/AzerothOnTape/total.svg)](https://github.com/fireph/AzerothOnTape/releases/latest)|
 
 Convert quest text in World of Warcraft to speech using Google text to speech API.
 
